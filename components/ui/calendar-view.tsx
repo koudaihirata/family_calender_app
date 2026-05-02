@@ -21,7 +21,7 @@ import {
 } from 'react-native'
 
 const DAY_SIZE = Math.floor((Dimensions.get('window').width - 32) / 7)
-const CELL_HEIGHT = DAY_SIZE + 40
+export const CELL_HEIGHT = DAY_SIZE + 40
 const EVENT_BAR_HEIGHT = 14
 
 type Props = {
@@ -121,11 +121,12 @@ export function CalendarView({ selectedDate, onSelectDate, events }: Props) {
                         >
                             <View style={styles.dayNumberRow}>
                                 <View
-                                    style={
+                                    style={[
+                                        styles.dayCircle,
                                         isTodayDate
                                             ? styles.todayCircle
-                                            : undefined
-                                    }
+                                            : undefined,
+                                    ]}
                                 >
                                     <Text
                                         style={[
@@ -227,13 +228,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 3,
     },
-    todayCircle: {
+    dayCircle: {
         width: 24,
         height: 24,
         borderRadius: 12,
-        backgroundColor: AppColors.primary,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    todayCircle: {
+        backgroundColor: AppColors.primary,
     },
     dayText: {
         color: AppColors.textSecondary,
