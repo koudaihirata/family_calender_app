@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '@/constants/theme';
 import { CalendarView } from '@/components/ui/calendar-view';
 import { EventList } from '@/components/ui/event-list';
@@ -9,7 +10,7 @@ export default function HomeScreen() {
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <CalendarView
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
@@ -19,7 +20,7 @@ export default function HomeScreen() {
                 selectedDate={selectedDate}
                 events={mockEvents}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 
