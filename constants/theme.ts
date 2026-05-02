@@ -5,45 +5,48 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#F07828';
+const tintColorDark = '#F07828';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#3D2B1F',
+    background: '#FFF8F2',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#A07858',
+    tabIconDefault: '#C4A898',
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#3D2B1F',
+    background: '#FFF8F2',
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: '#A07858',
+    tabIconDefault: '#C4A898',
     tabIconSelected: tintColorDark,
   },
 };
 
 export const AppColors = {
   // Backgrounds
-  background: '#151718',
-  cardBackground: '#1E2021',
-  headerLight: '#D0D0D0',
-  headerDark: '#353636',
+  background: '#FFF8F2',    // 薄橙ベース（画面背景）
+  cardBackground: '#FFFFFF', // カード背景
+
+  headerLight: '#FFE8CC',   // 薄橙（ヘッダー明）
+  headerDark: '#C4956A',    // 明るい茶色（ヘッダー暗）
 
   // Text
-  textPrimary: '#fff',
-  textSecondary: '#9BA1A6',
-  textLight: '#ECEDEE',
-  textMuted: '#808080',
+  textPrimary: '#3D2B1F',   // 濃い茶色（主要テキスト）
+  textSecondary: '#A07858', // 中間茶色（補助テキスト）
+  textLight: '#5C3D2E',     // 茶色（カード内テキスト）
+  textMuted: '#C4A898',     // 薄い茶色（ミュートテキスト）
 
   // Brand
-  primary: '#0a7ea4',
-  primaryMuted: 'rgba(10, 126, 164, 0.2)',
-  fallbackEventColor: '#9BA1A6',
+  primary: '#F07828',                       // アクセント橙
+  primaryMuted: 'rgba(240, 120, 40, 0.12)', // 選択日の背景
+  subColor: '#C4956A',                      // サブカラー（明るい茶色）
+
+  fallbackEventColor: '#C4A898',
 };
 
 export const Fonts = Platform.select({
