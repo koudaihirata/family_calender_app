@@ -27,6 +27,25 @@ export const Colors = {
   },
 };
 
+export const AppColors = {
+  // Backgrounds
+  background: '#151718',
+  cardBackground: '#1E2021',
+  headerLight: '#D0D0D0',
+  headerDark: '#353636',
+
+  // Text
+  textPrimary: '#fff',
+  textSecondary: '#9BA1A6',
+  textLight: '#ECEDEE',
+  textMuted: '#808080',
+
+  // Brand
+  primary: '#0a7ea4',
+  primaryMuted: 'rgba(10, 126, 164, 0.2)',
+  fallbackEventColor: '#9BA1A6',
+};
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
