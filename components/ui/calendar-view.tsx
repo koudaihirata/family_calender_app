@@ -1,56 +1,65 @@
-import React, { useState } from 'react';
+import { AppColors } from '@/constants/theme'
+import { EventWithLabel } from '@/types/event'
+import { Ionicons } from '@expo/vector-icons'
 import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import {
-    format,
-    startOfMonth,
-    endOfMonth,
     eachDayOfInterval,
+    endOfMonth,
+    format,
     getDay,
     isSameDay,
     isToday,
-} from 'date-fns';
-import { ja } from 'date-fns/locale';
-import { AppColors } from '@/constants/theme';
-import { EventWithLabel } from '@/types/event';
+    startOfMonth,
+} from 'date-fns'
+import { ja } from 'date-fns/locale'
+import React, { useState } from 'react'
+import {
+    Dimensions,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native'
 
-const DAY_SIZE = (Dimensions.get('window').width - 32) / 7;
+const DAY_SIZE = Math.floor((Dimensions.get('window').width - 32) / 7)
+const CELL_HEIGHT = DAY_SIZE + 40
+const EVENT_BAR_HEIGHT = 14
 
 type Props = {
-    selectedDate: Date;
-    onSelectDate: (date: Date) => void;
-    events: EventWithLabel[];
-};
+    selectedDate: Date
+    onSelectDate: (date: Date) => void
+    events: EventWithLabel[]
+}
 
 export function CalendarView({ selectedDate, onSelectDate, events }: Props) {
-    const [currentDate, setCurrentDate] = useState(new Date());
+    const [currentDate, setCurrentDate] = useState(new Date())
 
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const monthStart = startOfMonth(currentDate)
+    const monthEnd = endOfMonth(currentDate)
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
 
-    const firstDayOfWeek = getDay(monthStart);
-    const paddingDays = Array.from({ length: firstDayOfWeek }, (_, i) => i);
+    const firstDayOfWeek = getDay(monthStart)
+    const paddingDays = Array.from({ length: firstDayOfWeek }, (_, i) => i)
 
-    const daysWithEvents = new Set(
-        events.map((event) => format(event.start_at, 'yyyy-MM-dd'))
-    );
+    const eventsByDate = new Map<string, EventWithLabel[]>()
+    events.forEach((event) => {
+        const key = format(event.start_at, 'yyyy-MM-dd')
+        if (!eventsByDate.has(key)) eventsByDate.set(key, [])
+        eventsByDate.get(key)!.push(event)
+    })
 
-    const weekDays = ['日', '月', '火', '水', '木', '金', '土'];
+    const weekDays = ['日', '月', '火', '水', '木', '金', '土']
 
     const goToPreviousMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
-    };
+        setCurrentDate(
+            new Date(currentDate.getFullYear(), currentDate.getMonth() - 1),
+        )
+    }
 
     const goToNextMonth = () => {
-        setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
-    };
+        setCurrentDate(
+            new Date(currentDate.getFullYear(), currentDate.getMonth() + 1),
+        )
+    }
 
     return (
         <View style={styles.container}>
@@ -59,11 +68,25 @@ export function CalendarView({ selectedDate, onSelectDate, events }: Props) {
                     {format(currentDate, 'yyyy年M月', { locale: ja })}
                 </Text>
                 <View style={styles.navButtons}>
-                    <TouchableOpacity onPress={goToPreviousMonth} style={styles.navButton}>
-                        <Ionicons name="chevron-back" size={20} color={AppColors.textPrimary} />
+                    <TouchableOpacity
+                        onPress={goToPreviousMonth}
+                        style={styles.navButton}
+                    >
+                        <Ionicons
+                            name="chevron-back"
+                            size={20}
+                            color={AppColors.textPrimary}
+                        />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-                        <Ionicons name="chevron-forward" size={20} color={AppColors.textPrimary} />
+                    <TouchableOpacity
+                        onPress={goToNextMonth}
+                        style={styles.navButton}
+                    >
+                        <Ionicons
+                            name="chevron-forward"
+                            size={20}
+                            color={AppColors.textPrimary}
+                        />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -81,35 +104,69 @@ export function CalendarView({ selectedDate, onSelectDate, events }: Props) {
                     <View key={`padding-${i}`} style={styles.dayCell} />
                 ))}
                 {days.map((day) => {
-                    const dayString = format(day, 'yyyy-MM-dd');
-                    const hasEvent = daysWithEvents.has(dayString);
-                    const isSelected = isSameDay(day, selectedDate);
-                    const isTodayDate = isToday(day);
+                    const dayString = format(day, 'yyyy-MM-dd')
+                    const dayEvents = eventsByDate.get(dayString) ?? []
+                    const displayEvents = dayEvents.slice(0, 3)
+                    const isSelected = isSameDay(day, selectedDate)
+                    const isTodayDate = isToday(day)
 
                     return (
                         <TouchableOpacity
                             key={dayString}
                             onPress={() => onSelectDate(day)}
-                            style={[styles.dayCell, isSelected && styles.selectedDay]}
+                            style={[
+                                styles.dayCell,
+                                isSelected && styles.selectedDay,
+                            ]}
                         >
-                            <View style={isTodayDate ? styles.todayCircle : undefined}>
-                                <Text
+                            <View style={styles.dayNumberRow}>
+                                <View
+                                    style={
+                                        isTodayDate
+                                            ? styles.todayCircle
+                                            : undefined
+                                    }
+                                >
+                                    <Text
+                                        style={[
+                                            styles.dayText,
+                                            isTodayDate && styles.todayText,
+                                            isSelected &&
+                                                !isTodayDate &&
+                                                styles.selectedDayText,
+                                        ]}
+                                    >
+                                        {format(day, 'd')}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {displayEvents.map((event) => (
+                                <View
+                                    key={event.id}
                                     style={[
-                                        styles.dayText,
-                                        isTodayDate && styles.todayText,
-                                        isSelected && !isTodayDate && styles.selectedDayText,
+                                        styles.eventBar,
+                                        {
+                                            backgroundColor:
+                                                event.label?.color ??
+                                                AppColors.fallbackEventColor,
+                                        },
                                     ]}
                                 >
-                                    {format(day, 'd')}
-                                </Text>
-                            </View>
-                            {hasEvent && <View style={styles.eventDot} />}
+                                    <Text
+                                        style={styles.eventBarText}
+                                        numberOfLines={1}
+                                    >
+                                        {event.title}
+                                    </Text>
+                                </View>
+                            ))}
                         </TouchableOpacity>
-                    );
+                    )
                 })}
             </View>
         </View>
-    );
+    )
 }
 
 const styles = StyleSheet.create({
@@ -138,7 +195,7 @@ const styles = StyleSheet.create({
     },
     weekDaysRow: {
         flexDirection: 'row',
-        marginBottom: 8,
+        marginBottom: 4,
     },
     weekDayCell: {
         width: DAY_SIZE,
@@ -155,14 +212,20 @@ const styles = StyleSheet.create({
     },
     dayCell: {
         width: DAY_SIZE,
-        aspectRatio: 1,
+        height: CELL_HEIGHT,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         borderRadius: 8,
-        gap: 2,
+        paddingTop: 4,
+        paddingHorizontal: 2,
+        overflow: 'hidden',
     },
     selectedDay: {
         backgroundColor: AppColors.primaryMuted,
+    },
+    dayNumberRow: {
+        alignItems: 'center',
+        marginBottom: 3,
     },
     todayCircle: {
         width: 24,
@@ -183,10 +246,17 @@ const styles = StyleSheet.create({
     selectedDayText: {
         color: AppColors.textPrimary,
     },
-    eventDot: {
-        width: 4,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: AppColors.primary,
+    eventBar: {
+        width: '100%',
+        height: EVENT_BAR_HEIGHT,
+        borderRadius: 3,
+        paddingHorizontal: 3,
+        marginBottom: 2,
+        justifyContent: 'center',
     },
-});
+    eventBarText: {
+        fontSize: 9,
+        color: '#fff',
+        fontWeight: '500',
+    },
+})

@@ -1,5 +1,5 @@
-import { LabelColors } from '@/constants/label-colors';
-import { EventWithLabel } from '@/types/event';
+import { LabelColors } from '@/constants/label-colors'
+import { EventWithLabel } from '@/types/event'
 
 export const mockEvents: EventWithLabel[] = [
     {
@@ -15,7 +15,13 @@ export const mockEvents: EventWithLabel[] = [
         location_lng: null,
         created_at: new Date(2026, 4, 1),
         updated_at: new Date(2026, 4, 1),
-        label: { id: 'label-1', family_id: 'family-1', name: '家族', color: LabelColors.green, created_at: new Date() },
+        label: {
+            id: 'label-1',
+            family_id: 'family-1',
+            name: '家族',
+            color: LabelColors.green,
+            created_at: new Date(),
+        },
     },
     {
         id: '2',
@@ -30,7 +36,13 @@ export const mockEvents: EventWithLabel[] = [
         location_lng: 135.4983,
         created_at: new Date(2026, 4, 1),
         updated_at: new Date(2026, 4, 1),
-        label: { id: 'label-2', family_id: 'family-1', name: '買い物', color: LabelColors.blue, created_at: new Date() },
+        label: {
+            id: 'label-2',
+            family_id: 'family-1',
+            name: '買い物',
+            color: LabelColors.blue,
+            created_at: new Date(),
+        },
     },
     {
         id: '3',
@@ -45,7 +57,13 @@ export const mockEvents: EventWithLabel[] = [
         location_lng: null,
         created_at: new Date(2026, 4, 1),
         updated_at: new Date(2026, 4, 1),
-        label: { id: 'label-1', family_id: 'family-1', name: '家族', color: LabelColors.orange, created_at: new Date() },
+        label: {
+            id: 'label-1',
+            family_id: 'family-1',
+            name: '家族',
+            color: LabelColors.orange,
+            created_at: new Date(),
+        },
     },
     {
         id: '4',
@@ -60,7 +78,13 @@ export const mockEvents: EventWithLabel[] = [
         location_lng: null,
         created_at: new Date(2026, 4, 1),
         updated_at: new Date(2026, 4, 1),
-        label: { id: 'label-3', family_id: 'family-1', name: '医療', color: LabelColors.purple, created_at: new Date() },
+        label: {
+            id: 'label-3',
+            family_id: 'family-1',
+            name: '医療',
+            color: LabelColors.purple,
+            created_at: new Date(),
+        },
     },
     {
         id: '5',
@@ -75,6 +99,75 @@ export const mockEvents: EventWithLabel[] = [
         location_lng: null,
         created_at: new Date(2026, 4, 1),
         updated_at: new Date(2026, 4, 1),
-        label: { id: 'label-1', family_id: 'family-1', name: '家族', color: LabelColors.yellow, created_at: new Date() },
+        label: {
+            id: 'label-1',
+            family_id: 'family-1',
+            name: '家族',
+            color: LabelColors.yellow,
+            created_at: new Date(),
+        },
     },
-];
+    {
+        id: '6',
+        family_id: 'family-1',
+        created_by: 'user-1',
+        label_id: 'label-1',
+        title: '家族会議',
+        start_at: new Date(2026, 4, 2, 19, 0),
+        end_at: new Date(2026, 4, 2, 20, 0),
+        location_name: null,
+        location_lat: null,
+        location_lng: null,
+        created_at: new Date(2026, 4, 1),
+        updated_at: new Date(2026, 4, 1),
+        label: {
+            id: 'label-1',
+            family_id: 'family-1',
+            name: '家族',
+            color: LabelColors.green,
+            created_at: new Date(),
+        },
+    },
+    {
+        id: '7',
+        family_id: 'family-1',
+        created_by: 'user-1',
+        label_id: 'label-1',
+        title: '家族会議',
+        start_at: new Date(2026, 4, 2, 19, 0),
+        end_at: new Date(2026, 4, 2, 20, 0),
+        location_name: null,
+        location_lat: null,
+        location_lng: null,
+        created_at: new Date(2026, 4, 1),
+        updated_at: new Date(2026, 4, 1),
+        label: {
+            id: 'label-1',
+            family_id: 'family-1',
+            name: '家族',
+            color: LabelColors.green,
+            created_at: new Date(),
+        },
+    },
+    {
+        id: '8',
+        family_id: 'family-1',
+        created_by: 'user-1',
+        label_id: 'label-1',
+        title: '家族会議',
+        start_at: new Date(2026, 4, 2, 19, 0),
+        end_at: new Date(2026, 4, 2, 20, 0),
+        location_name: null,
+        location_lat: null,
+        location_lng: null,
+        created_at: new Date(2026, 4, 1),
+        updated_at: new Date(2026, 4, 1),
+        label: {
+            id: 'label-1',
+            family_id: 'family-1',
+            name: '家族',
+            color: LabelColors.green,
+            created_at: new Date(),
+        },
+    },
+]
