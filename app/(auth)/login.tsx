@@ -62,13 +62,18 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>ログイン</Text>
-        <Text style={styles.subtitle}>ファミリーカレンダーへようこそ</Text>
+        <View style={styles.logoArea}>
+          <View style={styles.logoCircle}>
+            <Text style={styles.logoEmoji}>📅</Text>
+          </View>
+          <Text style={styles.title}>ファミリーカレンダー</Text>
+          <Text style={styles.subtitle}>家族の予定をひとつに</Text>
+        </View>
 
         <TextInput
           style={styles.input}
           placeholder="メールアドレス"
-          placeholderTextColor="#aaa"
+          placeholderTextColor="#C4A898"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -78,7 +83,7 @@ export default function LoginScreen() {
         <TextInput
           style={styles.input}
           placeholder="パスワード"
-          placeholderTextColor="#aaa"
+          placeholderTextColor="#C4A898"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -116,33 +121,39 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#FFF8F2' },
   inner: {
     flexGrow: 1, justifyContent: 'center',
     paddingHorizontal: 32, paddingVertical: 48, gap: 12,
   },
-  title:    { fontSize: 30, fontWeight: '700', textAlign: 'center', color: '#111' },
-  subtitle: { fontSize: 14, textAlign: 'center', color: '#888', marginBottom: 8 },
+  logoArea:   { alignItems: 'center', marginBottom: 16, gap: 8 },
+  logoCircle: {
+    width: 72, height: 72, borderRadius: 20,
+    backgroundColor: '#FFE8CC', alignItems: 'center', justifyContent: 'center',
+  },
+  logoEmoji: { fontSize: 36 },
+  title:     { fontSize: 22, fontWeight: '700', color: '#3D2B1F' },
+  subtitle:  { fontSize: 14, color: '#A07858' },
   input: {
-    borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 12,
+    borderWidth: 1, borderColor: '#FFE8CC', borderRadius: 12,
     paddingHorizontal: 16, paddingVertical: 14,
-    fontSize: 16, backgroundColor: '#fafafa', color: '#111',
+    fontSize: 16, backgroundColor: '#fff', color: '#3D2B1F',
   },
   primaryButton: {
-    backgroundColor: '#4F7FFF', borderRadius: 12,
+    backgroundColor: '#F07828', borderRadius: 12,
     paddingVertical: 15, alignItems: 'center', marginTop: 4,
   },
   disabled: { opacity: 0.6 },
-  primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   divider: { flexDirection: 'row', alignItems: 'center', gap: 8, marginVertical: 4 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#e0e0e0' },
-  dividerText: { color: '#aaa', fontSize: 13 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#FFE8CC' },
+  dividerText: { color: '#C4A898', fontSize: 13 },
   googleButton: {
-    borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 12,
+    borderWidth: 1, borderColor: '#FFE8CC', borderRadius: 12,
     paddingVertical: 15, alignItems: 'center', backgroundColor: '#fff',
   },
-  googleButtonText: { fontSize: 16, fontWeight: '500', color: '#333' },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 8 },
-  footerText: { color: '#888', fontSize: 14 },
-  link: { color: '#4F7FFF', fontSize: 14, fontWeight: '600' },
+  googleButtonText: { fontSize: 16, fontWeight: '500', color: '#3D2B1F' },
+  footer:    { flexDirection: 'row', justifyContent: 'center', marginTop: 8 },
+  footerText: { color: '#A07858', fontSize: 14 },
+  link:      { color: '#F07828', fontSize: 14, fontWeight: '700' },
 })
