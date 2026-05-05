@@ -9,31 +9,48 @@ export type User = {
   created_at: string
 }
 
+export type Family = {
+  id: string
+  name: string
+  invite_code: string
+  home_address: string | null
+  home_lat: number | null
+  home_lng: number | null
+  created_at: string
+}
+
 type AuthContextType = {
   user: User | null
+  family: Family | null
   accessToken: string | null
   isLoading: boolean
   signIn: (accessToken: string, refreshToken: string, user: User) => Promise<void>
   signOut: () => Promise<void>
+  setFamily: (family: Family | null) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser]               = useState<User | null>(null)
+  const [family, setFamilyState]      = useState<Family | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading]     = useState(true)
 
   useEffect(() => {
     ;(async () => {
       try {
-        const [token, userData] = await Promise.all([
+        const [token, userData, familyData] = await Promise.all([
           SecureStore.getItemAsync('access_token'),
           SecureStore.getItemAsync('user'),
+          SecureStore.getItemAsync('family'),
         ])
         if (token && userData) {
           setAccessToken(token)
           setUser(JSON.parse(userData))
+        }
+        if (familyData) {
+          setFamilyState(JSON.parse(familyData))
         }
       } finally {
         setIsLoading(false)
@@ -51,18 +68,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(user)
   }
 
+  async function setFamily(family: Family | null) {
+    if (family) {
+      await SecureStore.setItemAsync('family', JSON.stringify(family))
+    } else {
+      await SecureStore.deleteItemAsync('family')
+    }
+    setFamilyState(family)
+  }
+
   async function signOut() {
     await Promise.all([
       SecureStore.deleteItemAsync('access_token'),
       SecureStore.deleteItemAsync('refresh_token'),
       SecureStore.deleteItemAsync('user'),
+      SecureStore.deleteItemAsync('family'),
     ])
     setAccessToken(null)
     setUser(null)
+    setFamilyState(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, family, accessToken, isLoading, signIn, signOut, setFamily }}>
       {children}
     </AuthContext.Provider>
   )

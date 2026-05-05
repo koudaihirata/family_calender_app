@@ -6,32 +6,53 @@ import 'react-native-reanimated'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { useColorScheme } from '@/hooks/use-color-scheme'
 import { AuthProvider, useAuth } from '@/lib/auth-context'
+import { api } from '@/lib/api'
 
 export const unstable_settings = {
   anchor: '(tabs)',
 }
 
 function RootNavigator() {
-  const { user, isLoading } = useAuth()
-  const segments            = useSegments()
-  const colorScheme         = useColorScheme()
+  const { user, family, isLoading, setFamily } = useAuth()
+  const segments                               = useSegments()
+  const colorScheme                            = useColorScheme()
 
   useEffect(() => {
     if (isLoading) return
-    const inAuth = segments[0] === '(auth)'
-    if (!user && !inAuth) {
-      router.replace('/(auth)/login')
-    } else if (user && inAuth) {
-      router.replace('/(tabs)')
+
+    const inAuth  = segments[0] === '(auth)'
+    const inSetup = segments[0] === '(setup)'
+
+    if (!user) {
+      if (!inAuth) router.replace('/(auth)/login')
+      return
     }
-  }, [user, isLoading, segments])
+
+    // ログイン済みだが family がキャッシュにない → APIで確認
+    if (!family) {
+      api.getMyFamily().then(({ family: f }) => {
+        if (f) {
+          setFamily(f)
+          if (inAuth || inSetup) router.replace('/(tabs)')
+        } else {
+          if (!inSetup) router.replace('/(setup)')
+        }
+      }).catch(() => {
+        if (!inSetup) router.replace('/(setup)')
+      })
+      return
+    }
+
+    if (inAuth || inSetup) router.replace('/(tabs)')
+  }, [user, family, isLoading, segments])
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal"  options={{ presentation: 'modal', title: 'Modal' }} />
+        <Stack.Screen name="(tabs)"  options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)"  options={{ headerShown: false }} />
+        <Stack.Screen name="(setup)" options={{ headerShown: false }} />
+        <Stack.Screen name="modal"   options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

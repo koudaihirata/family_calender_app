@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store'
-import type { User } from './auth-context'
+import type { User, Family } from './auth-context'
 
 export const BASE_URL = 'https://family-calendar-back.hiratakoudai61.workers.dev'
 
@@ -30,6 +30,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  // 認証
   register: (body: { name: string; email: string; password: string }) =>
     request<AuthResponse>('/register', { method: 'POST', body: JSON.stringify(body) }),
 
@@ -38,4 +39,14 @@ export const api = {
 
   me: () =>
     request<{ user: User }>('/me'),
+
+  // 家族
+  getMyFamily: () =>
+    request<{ family: Family | null }>('/families/me'),
+
+  createFamily: (body: { name: string }) =>
+    request<{ family: Family }>('/families', { method: 'POST', body: JSON.stringify(body) }),
+
+  joinFamily: (body: { invite_code: string }) =>
+    request<{ family: Family }>('/families/join', { method: 'POST', body: JSON.stringify(body) }),
 }
