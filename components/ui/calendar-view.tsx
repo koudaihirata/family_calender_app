@@ -1,4 +1,5 @@
 import { AppColors } from '@/constants/theme'
+import { getHolidaysForYear } from '@/data/holidays'
 import { EventWithLabel } from '@/types/event'
 import { Ionicons } from '@expo/vector-icons'
 import {
@@ -46,6 +47,8 @@ export function CalendarView({ selectedDate, onSelectDate, events }: Props) {
         if (!eventsByDate.has(key)) eventsByDate.set(key, [])
         eventsByDate.get(key)!.push(event)
     })
+
+    const holidays = getHolidaysForYear(currentDate.getFullYear())
 
     const weekDays = ['日', '月', '火', '水', '木', '金', '土']
 
@@ -105,8 +108,9 @@ export function CalendarView({ selectedDate, onSelectDate, events }: Props) {
                 ))}
                 {days.map((day) => {
                     const dayString = format(day, 'yyyy-MM-dd')
+                    const holidayName = holidays.get(dayString)
                     const dayEvents = eventsByDate.get(dayString) ?? []
-                    const displayEvents = dayEvents.slice(0, 3)
+                    const displayEvents = dayEvents.slice(0, holidayName ? 2 : 3)
                     const isSelected = isSameDay(day, selectedDate)
                     const isTodayDate = isToday(day)
 
@@ -141,6 +145,14 @@ export function CalendarView({ selectedDate, onSelectDate, events }: Props) {
                                     </Text>
                                 </View>
                             </View>
+
+                            {holidayName && (
+                                <View style={[styles.eventBar, { backgroundColor: AppColors.primary }]}>
+                                    <Text style={styles.eventBarText} numberOfLines={1}>
+                                        {holidayName}
+                                    </Text>
+                                </View>
+                            )}
 
                             {displayEvents.map((event) => (
                                 <View
