@@ -58,15 +58,29 @@ export const api = {
       .then(res => ({
         events: (res.events || []).map((e: any) => ({
           ...e,
-          start_at: typeof e.start_at === 'string' ? new Date(e.start_at) : e.start_at,
-          end_at: typeof e.end_at === 'string' ? new Date(e.end_at) : e.end_at,
+          start_at:   typeof e.start_at   === 'string' ? new Date(e.start_at)   : e.start_at,
+          end_at:     typeof e.end_at     === 'string' ? new Date(e.end_at)     : e.end_at,
           created_at: typeof e.created_at === 'string' ? new Date(e.created_at) : e.created_at,
           updated_at: typeof e.updated_at === 'string' ? new Date(e.updated_at) : e.updated_at,
+          // APIから返るフラットなlabel_name/label_colorをlabelオブジェクトに変換
+          label: e.label_name ? {
+            id:         e.label_id,
+            family_id:  e.family_id,
+            name:       e.label_name,
+            color:      e.label_color,
+            created_at: new Date(),
+          } : null,
         }))
       })),
 
   createEvent: (body: { title: string; start_at: string; end_at: string; label_id?: string; location_name?: string }) =>
     request<{ event: Event }>('/events', { method: 'POST', body: JSON.stringify(body) }),
+
+  getEvent: (id: string) =>
+    request<{ event: any }>(`/events/${id}`),
+
+  updateEvent: (id: string, body: { title?: string; start_at?: string; end_at?: string; label_id?: string | null; location_name?: string | null }) =>
+    request<{ event: any }>(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
 
   // ラベル
   getLabels: () =>
@@ -76,5 +90,15 @@ export const api = {
           ...l,
           created_at: typeof l.created_at === 'string' ? new Date(l.created_at) : l.created_at,
         }))
-      }))
+      })),
+
+  createLabel: (body: { name: string; color: string }) =>
+    request<{ label: Label }>('/labels', { method: 'POST', body: JSON.stringify(body) }),
+
+  deleteLabel: (id: string) =>
+    request<{ success: boolean }>(`/labels/${id}`, { method: 'DELETE' }),
+
+  // 家族
+  updateFamily: (body: { home_address?: string }) =>
+    request<{ family: Family }>('/families/me', { method: 'PUT', body: JSON.stringify(body) }),
 }

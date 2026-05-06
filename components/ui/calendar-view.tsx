@@ -9,6 +9,7 @@ import {
     getDay,
     isSameDay,
     isToday,
+    startOfDay,
     startOfMonth,
 } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -43,9 +44,15 @@ export function CalendarView({ selectedDate, onSelectDate, events }: Props) {
 
     const eventsByDate = new Map<string, EventWithLabel[]>()
     events.forEach((event) => {
-        const key = format(event.start_at, 'yyyy-MM-dd')
-        if (!eventsByDate.has(key)) eventsByDate.set(key, [])
-        eventsByDate.get(key)!.push(event)
+        const days = eachDayOfInterval({
+            start: startOfDay(event.start_at),
+            end:   startOfDay(event.end_at),
+        })
+        days.forEach((day) => {
+            const key = format(day, 'yyyy-MM-dd')
+            if (!eventsByDate.has(key)) eventsByDate.set(key, [])
+            eventsByDate.get(key)!.push(event)
+        })
     })
 
     const holidays = getHolidaysForYear(currentDate.getFullYear())

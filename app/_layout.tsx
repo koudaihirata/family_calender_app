@@ -53,7 +53,9 @@ function RootNavigator() {
         <Stack.Screen name="(auth)"  options={{ headerShown: false }} />
         <Stack.Screen name="(setup)" options={{ headerShown: false }} />
         <Stack.Screen name="modal"   options={{ presentation: 'modal', title: 'Modal' }} />
-        <Stack.Screen name="add-event" options={{ presentation: 'modal', title: 'イベント追加' }} />
+        <Stack.Screen name="add-event"      options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="label-settings" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="event-detail"   options={{ presentation: 'modal', headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

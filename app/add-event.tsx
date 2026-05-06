@@ -1,344 +1,257 @@
 import { useEffect, useState } from 'react'
 import {
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-  Alert,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ScrollView, Alert, ActivityIndicator, Platform,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { router } from 'expo-router'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { Picker } from '@react-native-picker/picker'
-import { ThemedText } from '@/components/themed-text'
-import { ThemedView } from '@/components/themed-view'
-import { Colors } from '@/constants/theme'
-import { useColorScheme } from '@/hooks/use-color-scheme'
+import { router } from 'expo-router'
 import { api } from '@/lib/api'
 import type { Label } from '@/types/label'
+import { format } from 'date-fns'
+import { ja } from 'date-fns/locale'
+
+type PickerTarget = 'startDate' | 'startTime' | 'endDate' | 'endTime' | null
 
 export default function AddEventScreen() {
-  const colorScheme = useColorScheme()
-  const [title, setTitle] = useState('')
-  const [startDate, setStartDate] = useState(new Date())
-  const [endDate, setEndDate] = useState(
-    new Date(new Date().getTime() + 60 * 60 * 1000)
-  )
-  const [showStartPicker, setShowStartPicker] = useState(false)
-  const [showEndPicker, setShowEndPicker] = useState(false)
-  const [labelId, setLabelId] = useState<string | null>(null)
-  const [location, setLocation] = useState('')
-  const [labels, setLabels] = useState<Label[]>([])
-  const [loading, setLoading] = useState(false)
-  const [labelsLoading, setLabelsLoading] = useState(true)
+  const [title, setTitle]           = useState('')
+  const [startAt, setStartAt]       = useState(() => {
+    const d = new Date(); d.setMinutes(0, 0, 0); return d
+  })
+  const [endAt, setEndAt]           = useState(() => {
+    const d = new Date(); d.setHours(d.getHours() + 1, 0, 0, 0); return d
+  })
+  const [locationName, setLocationName] = useState('')
+  const [labels, setLabels]             = useState<Label[]>([])
+  const [selectedLabel, setSelectedLabel] = useState<Label | null>(null)
+  const [pickerTarget, setPickerTarget]   = useState<PickerTarget>(null)
+  const [loading, setLoading]             = useState(false)
 
   useEffect(() => {
-    // ラベルを取得
-    api
-      .getLabels()
-      .then(({ labels }) => {
-        setLabels(labels)
-        // 最初のラベルを選択
-        if (labels.length > 0) {
-          setLabelId(labels[0].id)
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to fetch labels:', error)
-        Alert.alert('エラー', 'ラベルの取得に失敗しました')
-      })
-      .finally(() => setLabelsLoading(false))
+    api.getLabels()
+      .then(({ labels }) => setLabels(labels))
+      .catch(() => {})
   }, [])
 
-  const handleStartDateChange = (_: any, selectedDate?: Date) => {
-    setShowStartPicker(false)
-    if (selectedDate) {
-      setStartDate(selectedDate)
-      // 終了日時も更新（開始日時から1時間後）
-      if (selectedDate >= endDate) {
-        setEndDate(new Date(selectedDate.getTime() + 60 * 60 * 1000))
-      }
-    }
+  function openPicker(target: PickerTarget) {
+    setPickerTarget(prev => prev === target ? null : target)
   }
 
-  const handleEndDateChange = (_: any, selectedDate?: Date) => {
-    setShowEndPicker(false)
-    if (selectedDate) {
-      if (selectedDate <= startDate) {
-        Alert.alert('エラー', '終了時刻は開始時刻より後にしてください')
-        return
-      }
-      setEndDate(selectedDate)
+  function handlePickerChange(_: any, date?: Date) {
+    if (!date) { setPickerTarget(null); return }
+    if (pickerTarget === 'startDate') {
+      const next = new Date(startAt)
+      next.setFullYear(date.getFullYear(), date.getMonth(), date.getDate())
+      setStartAt(next)
+    } else if (pickerTarget === 'startTime') {
+      const next = new Date(startAt)
+      next.setHours(date.getHours(), date.getMinutes())
+      setStartAt(next)
+    } else if (pickerTarget === 'endDate') {
+      const next = new Date(endAt)
+      next.setFullYear(date.getFullYear(), date.getMonth(), date.getDate())
+      setEndAt(next)
+    } else if (pickerTarget === 'endTime') {
+      const next = new Date(endAt)
+      next.setHours(date.getHours(), date.getMinutes())
+      setEndAt(next)
     }
+    if (Platform.OS === 'android') setPickerTarget(null)
   }
 
-  const handleSubmit = async () => {
-    if (!title.trim()) {
-      Alert.alert('エラー', 'イベント名を入力してください')
-      return
-    }
+  async function handleSave() {
+    if (!title.trim()) { Alert.alert('エラー', 'タイトルを入力してください'); return }
+    if (endAt <= startAt) { Alert.alert('エラー', '終了日時は開始日時より後にしてください'); return }
 
     setLoading(true)
     try {
       await api.createEvent({
-        title: title.trim(),
-        start_at: startDate.toISOString(),
-        end_at: endDate.toISOString(),
-        label_id: labelId ?? undefined,
-        location_name: location.trim() || undefined,
+        title:         title.trim(),
+        start_at:      startAt.toISOString(),
+        end_at:        endAt.toISOString(),
+        label_id:      selectedLabel?.id,
+        location_name: locationName.trim() || undefined,
       })
-
-      Alert.alert('成功', 'イベントを追加しました')
       router.back()
-    } catch (error) {
-      console.error('Failed to create event:', error)
-      Alert.alert('エラー', error instanceof Error ? error.message : 'イベントの追加に失敗しました')
+    } catch (e: any) {
+      Alert.alert('エラー', e.message)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCancel = () => {
-    router.back()
-  }
-
-  const textColor = Colors[colorScheme ?? 'light'].text
-  const backgroundColor = Colors[colorScheme ?? 'light'].background
+  const pickerValue = (pickerTarget === 'startDate' || pickerTarget === 'startTime') ? startAt : endAt
+  const pickerMode  = (pickerTarget === 'startDate' || pickerTarget === 'endDate') ? 'date' : 'time'
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <ThemedText style={styles.title}>イベントを追加</ThemedText>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.cancelText}>キャンセル</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>イベントを追加</Text>
+        <TouchableOpacity
+          onPress={handleSave}
+          disabled={loading}
+          style={[styles.saveBtn, loading && styles.disabled]}
+        >
+          {loading
+            ? <ActivityIndicator color="#fff" size="small" />
+            : <Text style={styles.saveBtnText}>保存</Text>
+          }
+        </TouchableOpacity>
+      </View>
 
-        {/* イベント名 */}
-        <View style={styles.section}>
-          <ThemedText style={styles.label}>イベント名 *</ThemedText>
-          <TextInput
-            style={[styles.input, { color: textColor, borderColor: Colors[colorScheme ?? 'light'].tint }]}
-            placeholder="例: 家族会議"
-            placeholderTextColor={Colors[colorScheme ?? 'light'].tabIconDefault}
-            value={title}
-            onChangeText={setTitle}
-            editable={!loading}
-          />
-        </View>
+      <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+        {/* タイトル */}
+        <TextInput
+          style={styles.titleInput}
+          placeholder="タイトル"
+          placeholderTextColor="#C4A898"
+          value={title}
+          onChangeText={setTitle}
+          autoFocus
+        />
 
-        {/* 開始日時 */}
-        <View style={styles.section}>
-          <ThemedText style={styles.label}>開始日時 *</ThemedText>
-          <TouchableOpacity
-            style={[
-              styles.dateButton,
-              { borderColor: Colors[colorScheme ?? 'light'].tint },
-            ]}
-            onPress={() => setShowStartPicker(true)}
-            disabled={loading}
-          >
-            <ThemedText>
-              {startDate.toLocaleDateString('ja-JP', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-              })}{' '}
-              {startDate.toLocaleTimeString('ja-JP', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </ThemedText>
-          </TouchableOpacity>
-          {showStartPicker && (
+        {/* 日時 */}
+        <View style={styles.card}>
+          <View style={styles.dateRow}>
+            <Text style={styles.dateLabel}>開始</Text>
+            <TouchableOpacity onPress={() => openPicker('startDate')}>
+              <Text style={[styles.dateValue, pickerTarget === 'startDate' && styles.dateValueActive]}>
+                {format(startAt, 'M月d日(E)', { locale: ja })}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => openPicker('startTime')}>
+              <Text style={[styles.dateValue, pickerTarget === 'startTime' && styles.dateValueActive]}>
+                {format(startAt, 'HH:mm')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {(pickerTarget === 'startDate' || pickerTarget === 'startTime') && (
             <DateTimePicker
-              value={startDate}
-              mode="datetime"
-              display="default"
-              onChange={handleStartDateChange}
+              value={pickerValue}
+              mode={pickerMode}
+              display="spinner"
+              onChange={handlePickerChange}
+              locale="ja"
             />
           )}
-        </View>
 
-        {/* 終了日時 */}
-        <View style={styles.section}>
-          <ThemedText style={styles.label}>終了日時 *</ThemedText>
-          <TouchableOpacity
-            style={[
-              styles.dateButton,
-              { borderColor: Colors[colorScheme ?? 'light'].tint },
-            ]}
-            onPress={() => setShowEndPicker(true)}
-            disabled={loading}
-          >
-            <ThemedText>
-              {endDate.toLocaleDateString('ja-JP', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-              })}{' '}
-              {endDate.toLocaleTimeString('ja-JP', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </ThemedText>
-          </TouchableOpacity>
-          {showEndPicker && (
+          <View style={styles.cardSep} />
+
+          <View style={styles.dateRow}>
+            <Text style={styles.dateLabel}>終了</Text>
+            <TouchableOpacity onPress={() => openPicker('endDate')}>
+              <Text style={[styles.dateValue, pickerTarget === 'endDate' && styles.dateValueActive]}>
+                {format(endAt, 'M月d日(E)', { locale: ja })}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => openPicker('endTime')}>
+              <Text style={[styles.dateValue, pickerTarget === 'endTime' && styles.dateValueActive]}>
+                {format(endAt, 'HH:mm')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {(pickerTarget === 'endDate' || pickerTarget === 'endTime') && (
             <DateTimePicker
-              value={endDate}
-              mode="datetime"
-              display="default"
-              onChange={handleEndDateChange}
+              value={pickerValue}
+              mode={pickerMode}
+              display="spinner"
+              onChange={handlePickerChange}
+              locale="ja"
             />
           )}
         </View>
 
         {/* ラベル */}
-        <View style={styles.section}>
-          <ThemedText style={styles.label}>ラベル</ThemedText>
-          {labelsLoading ? (
-            <ActivityIndicator size="small" color={Colors[colorScheme ?? 'light'].tint} />
-          ) : labels.length > 0 ? (
-            <View
-              style={[
-                styles.pickerContainer,
-                { borderColor: Colors[colorScheme ?? 'light'].tint },
-              ]}
-            >
-              <Picker
-                selectedValue={labelId}
-                onValueChange={(itemValue) => setLabelId(itemValue)}
-                enabled={!loading}
-              >
-                {labels.map((label) => (
-                  <Picker.Item
-                    key={label.id}
-                    label={label.name}
-                    value={label.id}
-                    color={Colors[colorScheme ?? 'light'].text}
-                  />
-                ))}
-              </Picker>
+        {labels.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>ラベル</Text>
+            <View style={styles.labelGrid}>
+              {labels.map(label => (
+                <TouchableOpacity
+                  key={label.id}
+                  style={[
+                    styles.labelChip,
+                    { borderColor: label.color },
+                    selectedLabel?.id === label.id && { backgroundColor: label.color },
+                  ]}
+                  onPress={() => setSelectedLabel(prev => prev?.id === label.id ? null : label)}
+                >
+                  <View style={[styles.labelDot, { backgroundColor: label.color },
+                    selectedLabel?.id === label.id && { backgroundColor: '#fff' }
+                  ]} />
+                  <Text style={[
+                    styles.labelChipText,
+                    selectedLabel?.id === label.id && { color: '#fff' },
+                  ]}>
+                    {label.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          ) : null}
-        </View>
+          </View>
+        )}
 
         {/* 場所 */}
-        <View style={styles.section}>
-          <ThemedText style={styles.label}>場所</ThemedText>
+        <View style={styles.card}>
           <TextInput
-            style={[styles.input, { color: textColor, borderColor: Colors[colorScheme ?? 'light'].tint }]}
-            placeholder="例: 居間"
-            placeholderTextColor={Colors[colorScheme ?? 'light'].tabIconDefault}
-            value={location}
-            onChangeText={setLocation}
-            editable={!loading}
+            style={styles.locationInput}
+            placeholder="場所（任意）"
+            placeholderTextColor="#C4A898"
+            value={locationName}
+            onChangeText={setLocationName}
           />
         </View>
-
-        {/* ボタン */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.button, styles.cancelButton]}
-            onPress={handleCancel}
-            disabled={loading}
-          >
-            <ThemedText style={styles.buttonText}>キャンセル</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.submitButton,
-              { backgroundColor: Colors[colorScheme ?? 'light'].tint },
-              loading && styles.buttonDisabled,
-            ]}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <ThemedText style={[styles.buttonText, { color: '#fff' }]}>
-                追加
-              </ThemedText>
-            )}
-          </TouchableOpacity>
-        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
+  container:   { flex: 1, backgroundColor: '#FFF8F2' },
   header: {
-    marginBottom: 24,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingTop: 60, paddingBottom: 12,
+    borderBottomWidth: 1, borderBottomColor: '#FFE8CC',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+  cancelText:  { color: '#A07858', fontSize: 16, minWidth: 70 },
+  headerTitle: { fontSize: 17, fontWeight: '700', color: '#3D2B1F' },
+  saveBtn: {
+    backgroundColor: '#F07828', borderRadius: 8,
+    paddingVertical: 6, paddingHorizontal: 16, minWidth: 70, alignItems: 'center',
   },
-  section: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    minHeight: 44,
-  },
-  dateButton: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  pickerContainer: {
-    borderWidth: 1,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 24,
-    marginBottom: 32,
-  },
-  button: {
-    flex: 1,
+  saveBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  disabled:    { opacity: 0.6 },
+  form:        { padding: 16, gap: 12 },
+  titleInput: {
+    fontSize: 22, fontWeight: '600', color: '#3D2B1F',
+    borderBottomWidth: 1, borderBottomColor: '#FFE8CC',
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
   },
-  cancelButton: {
-    borderWidth: 1,
-    borderColor: '#ccc',
+  card: {
+    backgroundColor: '#fff', borderRadius: 14,
+    borderWidth: 1, borderColor: '#FFE8CC', padding: 16, gap: 8,
   },
-  submitButton: {
-    backgroundColor: '#007AFF',
+  cardTitle:      { fontSize: 13, fontWeight: '600', color: '#A07858' },
+  cardSep:        { height: 1, backgroundColor: '#FFE8CC' },
+  dateRow:        { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dateLabel:      { fontSize: 14, color: '#A07858', width: 32 },
+  dateValue: {
+    fontSize: 15, color: '#3D2B1F', fontWeight: '500',
+    paddingVertical: 4, paddingHorizontal: 8,
+    borderRadius: 6, backgroundColor: '#FFF8F2',
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  dateValueActive: { backgroundColor: '#FFE8CC', color: '#F07828' },
+  labelGrid:       { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  labelChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    borderWidth: 1.5, borderRadius: 20,
+    paddingVertical: 6, paddingHorizontal: 12,
   },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  labelDot:      { width: 8, height: 8, borderRadius: 4 },
+  labelChipText: { fontSize: 14, color: '#3D2B1F', fontWeight: '500' },
+  locationInput: { fontSize: 15, color: '#3D2B1F', paddingVertical: 2 },
 })
